@@ -34,8 +34,9 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
 
         Log.d(TAG, "Init Handover");
         // for the testing purpose, we start a service here
-        //Intent serviceIntent = new Intent(this, HandOverService.class);
-        //this.startService(serviceIntent);
+        Intent serviceIntent = new Intent();
+        serviceIntent.setClassName("com.example.ishida.handover", "com.example.ishida.handover.HandOverService");
+        this.startService(serviceIntent);
 
         ho = HandOver.getHandOver(this);
         ho.registerCallback(this);

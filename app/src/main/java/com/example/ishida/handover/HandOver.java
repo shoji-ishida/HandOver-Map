@@ -17,8 +17,9 @@ import java.util.Map;
  */
 public class HandOver {
     private static final String TAG = "HandOver";
-    public static final String HANDOVER_SERVICE = "com.example.ishida.handover.HandOverService";
     public static final String HANDOVER_PACKAGE = "com.example.ishida.handover";
+    public static final String HANDOVER_SERVICE = HANDOVER_PACKAGE + ".HandOverService";
+
     public static HandOver getHandOver(Activity activity) {
         return new HandOver(activity);
     }
