@@ -70,20 +70,24 @@ public class HandOver {
         this.callback = callback;
     }
 
-    public void unbind() {
-        if (handOverService != null) {
-            activity.unbindService(serviceConnection);
-        }
-    }
-
     public void bind() {
         Log.d(TAG, "bind");
         Log.d(TAG, Thread.currentThread().toString());
 
-        //Intent intent = new Intent(activity, HandOverService.class);
         Intent intent = new Intent();
         intent.setClassName(HANDOVER_PACKAGE, HANDOVER_SERVICE);
         activity.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    public void unbind() {
+        if (handOverService != null) {
+            try {
+                handOverService.unregisterCallback(handOverCallback);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            activity.unbindService(serviceConnection);
+        }
     }
 
     private IHandOverCallback handOverCallback = new IHandOverCallback.Stub() {
@@ -92,7 +96,7 @@ public class HandOver {
             if (callback != null) {
                 dictionary.clear();
                 callback.saveActivity(dictionary);
-                handOverService.handOver(activity.getComponentName().getClassName(), dictionary);
+                handOverService.handOver(activity.getComponentName(), dictionary);
             }
         }
 
@@ -108,14 +112,17 @@ public class HandOver {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("HandOver", "onServiceConnected");
+            Log.d(TAG, "onServiceConnected: " + name);
+
             handOverService = IHandOverService.Stub.asInterface(service);
             try {
                 handOverService.registerCallback(handOverCallback);
+                /*
                 if (needToSave) {
                     needToSave = false;
                     handOverService.activityChanged();
                 }
+                */
                 if (needToRestore) {
                     needToRestore = false;
                     restore();
@@ -128,6 +135,7 @@ public class HandOver {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "onServiceDisconnected: " + name);
             try {
                 handOverService.unregisterCallback(handOverCallback);
             } catch (RemoteException e) {

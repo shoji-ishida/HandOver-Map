@@ -8,7 +8,6 @@ import android.util.Log;
 
 import com.example.ishida.handover.HandOver;
 import com.example.ishida.handover.HandOverCallback;
-import com.example.ishida.handover.HandOverService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -34,13 +33,12 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
 
         Log.d(TAG, "Init Handover");
         // for the testing purpose, we start a service here
-        Intent serviceIntent = new Intent();
-        serviceIntent.setClassName("com.example.ishida.handover", "com.example.ishida.handover.HandOverService");
-        this.startService(serviceIntent);
+        //Intent serviceIntent = new Intent();
+        //serviceIntent.setClassName("com.example.ishida.handover", "com.example.ishida.handover.HandOverService");
+        //this.startService(serviceIntent);
 
         ho = HandOver.getHandOver(this);
         ho.registerCallback(this);
-        ho.bind();
 
         String action = getIntent().getAction();
         if (action.equals("com.example.ishida.handover.RECOVER")) {
@@ -49,15 +47,28 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
+        ho.bind();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        ho.unbind();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+        ho.unbind();
     }
 
     /**
@@ -100,29 +111,56 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     }
 
     @Override
-    public void saveActivity(Map<String, Object> dictionary) {
-        CameraPosition cameraPos = mMap.getCameraPosition();
-        float zoom = cameraPos.zoom;
-        double longitude = cameraPos.target.longitude;
-        double latitude = cameraPos.target.latitude;
+    public void saveActivity(final Map<String, Object> dictionary) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                CameraPosition cameraPos = mMap.getCameraPosition();
+                float zoom = cameraPos.zoom;
+                double longitude = cameraPos.target.longitude;
+                double latitude = cameraPos.target.latitude;
 
-        dictionary.put("zoom", zoom);
-        dictionary.put("longitude", (float)longitude);
-        dictionary.put("latitude", (float)latitude);
+                dictionary.put("zoom", zoom);
+                dictionary.put("longitude", (float)longitude);
+                dictionary.put("latitude", (float)latitude);
 
-        Log.d(TAG, "saveActivity: " + dictionary);
+                Log.d(TAG, "saveActivity: " + dictionary);
+                synchronized (this) {
+                    this.notify();
+                }
+            }
+        };
+        synchronized (runnable) {
+            runOnUiThread(runnable);
+            try {
+                runnable.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override
-    public void restoreActivity(Map<String, Object> dictionary) {
-        float zoom = (float)dictionary.get("zoom");
-        double longitude = (double)dictionary.get("longitude");
-        double latitude = (double)dictionary.get("latitude");
+    public void restoreActivity(final Map<String, Object> dictionary) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                float zoom = (float)dictionary.get("zoom");
+                float f = (float)dictionary.get("longitude");
+                double longitude = f;
+                f = (float)dictionary.get("latitude");
+                double latitude = f;
 
-        CameraPosition cameraPos = new CameraPosition.Builder()
-                .target(new LatLng(latitude, longitude)).zoom(zoom)
-                .bearing(0).build();
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
+                CameraPosition cameraPos = new CameraPosition.Builder()
+                        .target(new LatLng(latitude, longitude)).zoom(zoom)
+                        .bearing(0).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
+            }
+        };
+        synchronized (runnable) {
+            runOnUiThread(runnable);
+        }
     }
 
     @Override
