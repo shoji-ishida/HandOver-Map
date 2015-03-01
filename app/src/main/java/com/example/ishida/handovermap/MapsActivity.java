@@ -119,10 +119,14 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 float zoom = cameraPos.zoom;
                 double longitude = cameraPos.target.longitude;
                 double latitude = cameraPos.target.latitude;
+                float bearing = cameraPos.bearing;
+                float tilt = cameraPos.tilt;
 
                 dictionary.put("zoom", zoom);
                 dictionary.put("longitude", (float)longitude);
                 dictionary.put("latitude", (float)latitude);
+                dictionary.put("bearing", bearing);
+                dictionary.put("tilt", tilt);
 
                 Log.d(TAG, "saveActivity: " + dictionary);
                 synchronized (this) {
@@ -151,10 +155,12 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 double longitude = f;
                 f = (float)dictionary.get("latitude");
                 double latitude = f;
+                float bearing = (float)dictionary.get("bearing");
+                float tilt = (float)dictionary.get("tilt");
 
                 CameraPosition cameraPos = new CameraPosition.Builder()
                         .target(new LatLng(latitude, longitude)).zoom(zoom)
-                        .bearing(0).build();
+                        .bearing(bearing).tilt(tilt).build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
             }
         };
