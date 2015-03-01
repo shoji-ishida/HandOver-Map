@@ -158,9 +158,7 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
             }
         };
-        synchronized (runnable) {
-            runOnUiThread(runnable);
-        }
+        runOnUiThread(runnable);
     }
 
     @Override
