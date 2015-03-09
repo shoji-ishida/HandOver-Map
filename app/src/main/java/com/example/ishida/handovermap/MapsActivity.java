@@ -130,8 +130,8 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 float tilt = cameraPos.tilt;
 
                 dictionary.put("zoom", zoom);
-                dictionary.put("longitude", (float)longitude);
-                dictionary.put("latitude", (float)latitude);
+                dictionary.put("longitude", longitude);
+                dictionary.put("latitude", latitude);
                 dictionary.put("bearing", bearing);
                 dictionary.put("tilt", tilt);
 
@@ -158,10 +158,10 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
             @Override
             public void run() {
                 float zoom = (float)dictionary.get("zoom");
-                float f = (float)dictionary.get("longitude");
-                double longitude = f;
-                f = (float)dictionary.get("latitude");
-                double latitude = f;
+                //float f = (float)dictionary.get("longitude");
+                double longitude = (double)dictionary.get("longitude");;
+                //f = (float)dictionary.get("latitude");
+                double latitude = (double)dictionary.get("latitude");
                 float bearing = (float)dictionary.get("bearing");
                 float tilt = (float)dictionary.get("tilt");
 
