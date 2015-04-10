@@ -209,15 +209,16 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     @Override
     public void onIndoorBuildingFocused() {
         IndoorBuilding building = mMap.getFocusedBuilding();
-        if (buildingLevelHandOver) {
-            buildingLevelHandOver = false;
-            return;
-        }
         if (building != null) {
-            int level = building.getActiveLevelIndex();
-            Log.d(TAG, "Focused Level = " +  level);
-            buildingFocused = true;
-            this.level = level;
+            if (buildingLevelHandOver) { // we received level which is changed
+                buildingLevelHandOver = false;
+                return;
+            } else { // we will send level which is changed
+                int level = building.getActiveLevelIndex();
+                Log.d(TAG, "Focused Level = " + level);
+                buildingFocused = true;
+                this.level = level;
+            }
         } else {
             Log.d(TAG, "null");
             buildingFocused = false;
