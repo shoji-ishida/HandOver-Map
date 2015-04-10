@@ -21,11 +21,20 @@ import java.util.Map;
 
 public class MapsActivity extends Activity implements HandOverCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMapLoadedCallback, GoogleMap.OnIndoorStateChangeListener {
     private static final String TAG = "HandOver Map";
+
+    private static final String ZOOM = "zoom";
+    private static final String LONGITUDE = "longitude";
+    private static final String LATITUDE = "latitude";
+    private static final String BEARING = "bearing";
+    private static final String TILT = "tilt";
+    private static final String LEVEL = "level";
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     private HandOver ho;
 
     private boolean buildingFocused = false;
+    private boolean buildingLevelHandOver = false;
     private int level;
 
     @Override
@@ -134,13 +143,13 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 float bearing = cameraPos.bearing;
                 float tilt = cameraPos.tilt;
 
-                dictionary.put("zoom", zoom);
-                dictionary.put("longitude", longitude);
-                dictionary.put("latitude", latitude);
-                dictionary.put("bearing", bearing);
-                dictionary.put("tilt", tilt);
+                dictionary.put(ZOOM, zoom);
+                dictionary.put(LONGITUDE, longitude);
+                dictionary.put(LATITUDE, latitude);
+                dictionary.put(BEARING, bearing);
+                dictionary.put(TILT, tilt);
                 if (buildingFocused) {
-                    dictionary.put("level", level);
+                    dictionary.put(LEVEL, level);
                 }
 
                 Log.d(TAG, "saveActivity: " + dictionary);
@@ -165,13 +174,17 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                float zoom = (float)dictionary.get("zoom");
+                float zoom = (float)dictionary.get(ZOOM);
                 //float f = (float)dictionary.get("longitude");
-                double longitude = (double)dictionary.get("longitude");
+                double longitude = (double)dictionary.get(LONGITUDE);
                 //f = (float)dictionary.get("latitude");
-                double latitude = (double)dictionary.get("latitude");
-                float bearing = (float)dictionary.get("bearing");
-                float tilt = (float)dictionary.get("tilt");
+                double latitude = (double)dictionary.get(LATITUDE);
+                float bearing = (float)dictionary.get(BEARING);
+                float tilt = (float)dictionary.get(TILT);
+                if (dictionary.containsKey(LEVEL)) {
+                    level = (int)dictionary.get(LEVEL);
+                    buildingLevelHandOver = true;
+                }
 
                 CameraPosition cameraPos = new CameraPosition.Builder()
                         .target(new LatLng(latitude, longitude)).zoom(zoom)
@@ -196,6 +209,10 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     @Override
     public void onIndoorBuildingFocused() {
         IndoorBuilding building = mMap.getFocusedBuilding();
+        if (buildingLevelHandOver) {
+            buildingLevelHandOver = false;
+            return;
+        }
         if (building != null) {
             int level = building.getActiveLevelIndex();
             Log.d(TAG, "Focused Level = " +  level);
