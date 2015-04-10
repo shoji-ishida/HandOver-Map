@@ -139,6 +139,9 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
                 dictionary.put("latitude", latitude);
                 dictionary.put("bearing", bearing);
                 dictionary.put("tilt", tilt);
+                if (buildingFocused) {
+                    dictionary.put("level", level);
+                }
 
                 Log.d(TAG, "saveActivity: " + dictionary);
                 synchronized (this) {
@@ -164,7 +167,7 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
             public void run() {
                 float zoom = (float)dictionary.get("zoom");
                 //float f = (float)dictionary.get("longitude");
-                double longitude = (double)dictionary.get("longitude");;
+                double longitude = (double)dictionary.get("longitude");
                 //f = (float)dictionary.get("latitude");
                 double latitude = (double)dictionary.get("latitude");
                 float bearing = (float)dictionary.get("bearing");
