@@ -13,16 +13,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.IndoorBuilding;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Map;
 
-public class MapsActivity extends Activity implements HandOverCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMapLoadedCallback {
+public class MapsActivity extends Activity implements HandOverCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMapLoadedCallback, GoogleMap.OnIndoorStateChangeListener {
     private static final String TAG = "HandOver Map";
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     private HandOver ho;
+
+    private boolean buildingFocused = false;
+    private int level;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +112,7 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     private void setUpMap() {
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.setOnCameraChangeListener(this);
+        mMap.setOnIndoorStateChangeListener(this);
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
@@ -183,5 +188,26 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     @Override
     public void onMapLoaded() {
 
+    }
+
+    @Override
+    public void onIndoorBuildingFocused() {
+        IndoorBuilding building = mMap.getFocusedBuilding();
+        if (building != null) {
+            int level = building.getActiveLevelIndex();
+            Log.d(TAG, "Focused Level = " +  level);
+            buildingFocused = true;
+            this.level = level;
+        } else {
+            Log.d(TAG, "null");
+            buildingFocused = false;
+        }
+    }
+
+    @Override
+    public void onIndoorLevelActivated(IndoorBuilding indoorBuilding) {
+        int level = indoorBuilding.getActiveLevelIndex();
+        Log.d(TAG, "Level = " +  level);
+        this.level = level;
     }
 }
