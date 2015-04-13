@@ -14,9 +14,11 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.IndoorBuilding;
+import com.google.android.gms.maps.model.IndoorLevel;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
 import java.util.Map;
 
 public class MapsActivity extends Activity implements HandOverCallback, GoogleMap.OnCameraChangeListener, GoogleMap.OnMapLoadedCallback, GoogleMap.OnIndoorStateChangeListener {
@@ -199,6 +201,14 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     public void onCameraChange(CameraPosition cameraPosition) {
         Log.d(TAG, "onCameraChanged");
         ho.activityChanged();
+
+        IndoorBuilding building = mMap.getFocusedBuilding();
+        if (building != null && buildingLevelHandOver) { // we received level which is changed
+            buildingLevelHandOver = false;
+            List<IndoorLevel> levels = building.getLevels();
+            IndoorLevel level = levels.get(this.level);
+            level.activate();
+        }
     }
 
     @Override
@@ -212,6 +222,9 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
         if (building != null) {
             if (buildingLevelHandOver) { // we received level which is changed
                 buildingLevelHandOver = false;
+                List<IndoorLevel> levels = building.getLevels();
+                IndoorLevel level = levels.get(this.level);
+                level.activate();
                 return;
             } else { // we will send level which is changed
                 int level = building.getActiveLevelIndex();
@@ -229,6 +242,9 @@ public class MapsActivity extends Activity implements HandOverCallback, GoogleMa
     public void onIndoorLevelActivated(IndoorBuilding indoorBuilding) {
         int level = indoorBuilding.getActiveLevelIndex();
         Log.d(TAG, "Level = " +  level);
-        this.level = level;
+        if (buildingFocused) {
+            this.level = level;
+            ho.activityChanged();
+        }
     }
 }
